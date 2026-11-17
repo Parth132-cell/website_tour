@@ -17,8 +17,8 @@
 
 ## Files
 
-- `example/lib/demo_store.dart` contains demo user models, repository and Cubit state.
-- `example/lib/main.dart` contains screens and interaction wiring.
+- `lib/demo_store.dart` contains demo user models, repository and Cubit state.
+- `lib/main.dart` contains screens and interaction wiring.
 
 ## Validation and boundaries
 

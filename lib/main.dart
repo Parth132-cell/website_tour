@@ -441,13 +441,24 @@ class _FlowShellState extends State<FlowShell> {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, box) {
-      final compact = box.maxWidth < 900;
+      final compact = box.maxWidth < 1100;
       final path = widget.router.routeInformationProvider.value.uri.path;
       final title =
           _destinations.where((d) => d.path == path).firstOrNull?.title ??
           (path == '/profile' ? 'My profile' : 'Workspace');
       return Scaffold(
         key: scaffoldKey,
+        appBar: _Topbar(
+          title: title,
+          compact: compact,
+          role: widget.role,
+          onRole: widget.onRole,
+          onTheme: widget.onTheme,
+          onTour: widget.onTour,
+          onCrossTour: widget.onCrossTour,
+          onMenu: () => scaffoldKey.currentState?.openDrawer(),
+          onSearch: (value) => setState(() => query = value),
+        ),
         drawer: compact
             ? Drawer(
                 child: _Sidebar(
@@ -469,24 +480,7 @@ class _FlowShellState extends State<FlowShell> {
                 onCollapse: () => setState(() => collapsed = !collapsed),
                 onNavigate: context.go,
               ),
-            Expanded(
-              child: Column(
-                children: [
-                  _Topbar(
-                    title: title,
-                    compact: compact,
-                    role: widget.role,
-                    onRole: widget.onRole,
-                    onTheme: widget.onTheme,
-                    onTour: widget.onTour,
-                    onCrossTour: widget.onCrossTour,
-                    onMenu: () => scaffoldKey.currentState?.openDrawer(),
-                    onSearch: (v) => setState(() => query = v),
-                  ),
-                  Expanded(child: widget.child),
-                ],
-              ),
-            ),
+            Expanded(child: widget.child),
           ],
         ),
       );
@@ -647,7 +641,7 @@ class _NavItem extends StatelessWidget {
   );
 }
 
-class _Topbar extends StatelessWidget {
+class _Topbar extends StatelessWidget implements PreferredSizeWidget {
   const _Topbar({
     required this.title,
     required this.compact,
@@ -665,104 +659,104 @@ class _Topbar extends StatelessWidget {
   final VoidCallback onTheme, onTour, onCrossTour, onMenu;
   final ValueChanged<String> onSearch;
   @override
-  Widget build(BuildContext context) => Container(
-    height: 72,
-    padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 28),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      border: const Border(bottom: BorderSide(color: _line)),
-    ),
-    child: Row(
-      children: [
-        if (compact)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                onPressed: onMenu,
-                icon: const Icon(Icons.menu_rounded),
-              ),
-              const Text(
-                'FlowDesk',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-              ),
-            ],
+  Size get preferredSize => const Size.fromHeight(69);
+
+  @override
+  Widget build(BuildContext context) => AppBar(
+    toolbarHeight: 68,
+    automaticallyImplyLeading: false,
+    backgroundColor: Theme.of(context).colorScheme.surface,
+    surfaceTintColor: Colors.transparent,
+    elevation: 0,
+    scrolledUnderElevation: 0,
+    leading: compact
+        ? IconButton(
+            tooltip: 'Open navigation',
+            onPressed: onMenu,
+            icon: const Icon(Icons.menu_rounded),
           )
-        else
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: Text(
-              title,
-              style: const TextStyle(color: _muted, fontSize: 13),
-            ),
-          ),
-        const Spacer(),
-        if (!compact)
-          SizedBox(
-            width: 240,
-            height: 38,
-            child: TextField(
-              onChanged: onSearch,
-              decoration: InputDecoration(
-                hintText: 'Search anything...',
-                prefixIcon: const Icon(Icons.search, size: 18),
-                contentPadding: EdgeInsets.zero,
-                filled: true,
-                fillColor: _canvas,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(9),
-                  borderSide: BorderSide.none,
-                ),
+        : null,
+    leadingWidth: 52,
+    titleSpacing: compact ? 4 : 28,
+    title: Text(
+      compact ? 'FlowDesk' : title,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
+        fontWeight: FontWeight.w700,
+        fontSize: compact ? 17 : 19,
+        letterSpacing: -.25,
+      ),
+    ),
+    actions: [
+      if (!compact)
+        SizedBox(
+          width: 220,
+          height: 40,
+          child: TextField(
+            onChanged: onSearch,
+            decoration: InputDecoration(
+              hintText: 'Search anything',
+              prefixIcon: const Icon(Icons.search, size: 19),
+              contentPadding: EdgeInsets.zero,
+              filled: true,
+              fillColor: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF202A34)
+                  : const Color(0xFFF3F6F8),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide.none,
               ),
             ),
           ),
-        const SizedBox(width: 8),
-        PopupMenuButton<String>(
-          tooltip: 'Help and tours',
-          onSelected: (value) =>
-              value == 'workspace' ? onCrossTour() : onTour(),
-          itemBuilder: (_) => const [
-            PopupMenuItem(value: 'page', child: Text('Tour this page')),
-            PopupMenuItem(value: 'workspace', child: Text('Workspace tour')),
-          ],
-          icon: const Icon(Icons.help_outline_rounded, size: 21),
         ),
-        IconButton(
-          tooltip: 'Toggle theme',
-          onPressed: onTheme,
-          icon: Icon(
-            Theme.of(context).brightness == Brightness.dark
-                ? Icons.light_mode_outlined
-                : Icons.dark_mode_outlined,
-            size: 20,
+      const SizedBox(width: 8),
+      PopupMenuButton<String>(
+        tooltip: 'Help and tours',
+        onSelected: (value) => value == 'workspace' ? onCrossTour() : onTour(),
+        itemBuilder: (_) => const [
+          PopupMenuItem(value: 'page', child: Text('Tour this page')),
+          PopupMenuItem(value: 'workspace', child: Text('Workspace tour')),
+        ],
+        icon: const Icon(Icons.help_outline_rounded),
+      ),
+      IconButton(
+        tooltip: 'Toggle theme',
+        onPressed: onTheme,
+        icon: Icon(
+          Theme.of(context).brightness == Brightness.dark
+              ? Icons.light_mode_outlined
+              : Icons.dark_mode_outlined,
+        ),
+      ),
+      IconButton(
+        tooltip: 'Notifications',
+        onPressed: () => context.go('/notifications'),
+        icon: BlocBuilder<FlowDeskCubit, DemoState>(
+          builder: (context, state) => Badge(
+            isLabelVisible: state.unreadCount > 0,
+            label: Text('${state.unreadCount}'),
+            child: const Icon(Icons.notifications_none_rounded),
           ),
         ),
-        IconButton(
-          tooltip: 'Notifications',
-          onPressed: () => context.go('/notifications'),
-          icon: BlocBuilder<FlowDeskCubit, DemoState>(
-            builder: (context, state) => Badge(
-              isLabelVisible: state.unreadCount > 0,
-              label: Text('${state.unreadCount}'),
-              child: const Icon(Icons.notifications_none_rounded, size: 21),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Container(width: 1, height: 28, color: _line),
-        const SizedBox(width: 12),
-        PopupMenuButton<String>(
-          tooltip: 'Account menu',
-          onSelected: (v) {
-            if (v == 'profile') context.go('/profile');
-            if (v == 'role') onRole(role == 'Admin' ? 'Member' : 'Admin');
-          },
-          itemBuilder: (_) => [
-            const PopupMenuItem(value: 'profile', child: Text('My profile')),
-            PopupMenuItem(value: 'role', child: Text('Switch role ($role)')),
-            const PopupMenuItem(value: 'logout', child: Text('Sign out')),
-          ],
+      ),
+      const SizedBox(width: 8),
+      PopupMenuButton<String>(
+        tooltip: 'Account menu',
+        onSelected: (value) {
+          if (value == 'profile') context.go('/profile');
+          if (value == 'role') onRole(role == 'Admin' ? 'Member' : 'Admin');
+        },
+        itemBuilder: (_) => [
+          const PopupMenuItem(value: 'profile', child: Text('My profile')),
+          PopupMenuItem(value: 'role', child: Text('Switch role ($role)')),
+          const PopupMenuItem(value: 'logout', child: Text('Sign out')),
+        ],
+        child: Padding(
+          padding: EdgeInsets.only(right: compact ? 10 : 22, left: 8),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               const CircleAvatar(
                 radius: 17,
@@ -800,7 +794,17 @@ class _Topbar extends StatelessWidget {
             ],
           ),
         ),
-      ],
+      ),
+    ],
+    bottom: PreferredSize(
+      preferredSize: const Size.fromHeight(1),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF2E3B48)
+            : _line,
+      ),
     ),
   );
 }

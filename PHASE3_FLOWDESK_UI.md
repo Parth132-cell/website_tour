@@ -17,11 +17,11 @@
 
 ## Main implementation
 
-`example/lib/main.dart` contains the Phase 3 app shell, routes, theme, page layouts and shared visual components. The root `dynamic_tour_engine` package API remains the demo tour integration boundary.
+`lib/main.dart` contains the FlowDesk app shell, routes, theme, page layouts and shared visual components. The reusable tour engine remains in `lib/dynamic_tour_engine.dart` within the same project.
 
 ## Validation
 
-- Dart formatting completed successfully for `example/lib/main.dart`.
+- Dart formatting completed successfully for `lib/main.dart`.
 - Flutter static analysis could not be completed in this environment. The Flutter tool failed to access `C:\flutter\bin\cache\lockfile`, and Dart analysis could not start its analysis server due to access being denied outside the writable project roots.
 - No tests were added or run in this phase.
 

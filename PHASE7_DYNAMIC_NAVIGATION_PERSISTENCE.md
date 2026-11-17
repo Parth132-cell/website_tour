@@ -22,7 +22,7 @@ SharedPreferences stores browser-local demo progress. A future account-aware app
 ## Files
 
 - `lib/dynamic_tour_engine.dart` adds `TourSessionStore` and last-active handling in the SharedPreferences adapter/controller.
-- `example/lib/main.dart` registers the workspace tour, adds the Help menu choices, restores the route/session tour, and configures role-specific Reports guidance.
+- `lib/main.dart` registers the workspace tour, adds the Help menu choices, restores the route/session tour, and configures role-specific Reports guidance.
 
 ## Validation and boundaries
 

@@ -27,7 +27,7 @@
 
 ## Files
 
-- `example/lib/main.dart` defines the route-local tour configurations, registers them in `TourRegistry`, and places the target anchors.
+- `lib/main.dart` defines the route-local tour configurations, registers them in `TourRegistry`, and places the target anchors.
 - `PHASE5_ENGINE.md` documents the reusable registry/controller API.
 
 ## Validation and scope

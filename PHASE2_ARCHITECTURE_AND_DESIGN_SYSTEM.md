@@ -31,42 +31,21 @@ flowchart TD
   Progress --> Preferences[SharedPreferences adapter]
 ```
 
-### Repository layout for FlowDesk
+### Single-project layout for FlowDesk
 
 ```text
-example/lib/
-  app/
-    app.dart
-    router.dart
-    shell/
-  core/
-    theme/
-    responsive/
-    routing/
-    errors/
-  shared/
-    widgets/
-    forms/
-    tables/
-  data/
-    models/
-    mock/
-    repositories/
-  features/
-    dashboard/
-    users/
-    alumni/
-    messages/
-    events/
-    reports/
-    notifications/
-    settings/
-    profile/
-  onboarding/
-    flowdesk_tours.dart
+lib/
+  main.dart
+  demo_store.dart
+  dynamic_tour_engine.dart
+test/
+  tour_engine_test.dart
+  widget_test.dart
+web/
+android/
 ```
 
-Keep the portable engine in the root package under `lib/`; FlowDesk-specific routes, content, roles and persistence wiring stay in the example app. Phase 9 can extract/refine the root package without taking business modules with it.
+The app and reusable engine live in the same Flutter project. `dynamic_tour_engine.dart` contains the engine API, while `main.dart` and `demo_store.dart` contain FlowDesk demo UI and state. Other projects can reuse this project through a local path or Git dependency.
 
 ### Dependency direction
 

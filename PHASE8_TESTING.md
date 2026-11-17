@@ -14,12 +14,12 @@ The demo widget tests cover first-time onboarding and confirm that the active to
 - Target registration could notify the tour overlay while Flutter was building a page, triggering `setState() or markNeedsBuild() called during build`. Registry notifications now defer to the end of the frame when registration or removal happens during a frame; the target key is still registered immediately.
 - Startup restore and controller persistence needed explicit casts to the optional `TourSessionStore` interface because Dart does not promote the base progress-store interface to that unrelated capability.
 - The duplicate-target test now exercises a second registration against an already mounted first target without throwing from the widget tree during its build/teardown.
-- Updated the example's widget test to assert the current FlowDesk app title.
+- Updated the FlowDesk widget test to assert the current app title.
 
 ## Validation results
 
-- `flutter test --no-pub --reporter expanded` — **passed**, 19 engine tests.
-- `flutter test --no-pub --reporter expanded` in `example/` — **passed**, 2 widget tests.
+- Before the single-project consolidation, the engine suite passed 19 tests and the demo suite passed 2 widget tests in their separate roots.
+- After consolidation, `flutter test --no-pub --reporter expanded` from the root — **passed**, all 21 tests in one project.
 - `flutter analyze --no-pub` — **completed with no errors or warnings**; it reported 29 informational lints, primarily existing style and deprecation notices. Two informational async-context notices are in the demo's existing dialog callbacks.
 
 Interactive browser refresh, cross-route tour navigation, and manual role switching were not automated in this phase.

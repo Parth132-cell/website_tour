@@ -1,6 +1,6 @@
-# Dynamic Tour Engine and FlowDesk
+# FlowDesk and Reusable Dynamic Tour Engine
 
-This workspace contains a reusable Flutter onboarding engine and its FlowDesk SaaS demo application.
+This is one Flutter project. The reusable tour engine lives in `lib/dynamic_tour_engine.dart`; the FlowDesk app in `lib/main.dart` shows it in a complete routed product UI.
 
 ## Project phases
 
@@ -14,7 +14,7 @@ This workspace contains a reusable Flutter onboarding engine and its FlowDesk Sa
 
 ## Run the demo
 
-From `dynamic_tour_engine/example`, run:
+From this project directory, run:
 
 ```powershell
 flutter pub get
@@ -23,6 +23,59 @@ flutter run -d chrome
 
 The app includes Dashboard, Users, Alumni, Messages, Events, Reports, Notifications, Settings and Profile routes. Each route has an independent tour. The Help menu also starts an optional cross-route workspace tour. SharedPreferences stores local progress and restores the last active tour after reload.
 
-## Integrate the engine
+## Use it in another Flutter project
 
-Create a `TourTargetRegistry`, register configurations in `TourRegistry`, and create a `TourController` at the application root. Place `TourOverlayHost` above routed content and register semantic targets with `TourTarget`. Implement `TourProgressStore` for progress; implement optional `TourSessionStore` as well when the app needs last-active tour restoration.
+The engine and the app are kept together in this project. To reuse the engine from another project during local development, add this project to that app's `pubspec.yaml` (adjust the relative path to your folders):
+
+```yaml
+dependencies:
+  dynamic_tour_engine:
+    path: ../dynamic_tour_engine
+```
+
+For a typical app, add one `TourExperience` around your app, use `TourAnchor` on the widgets a tour should point to, and start a tour from any button. The wrapper creates and owns the registries, controller, and overlay for you.
+
+```dart
+import 'package:dynamic_tour_engine/dynamic_tour_engine.dart';
+import 'package:flutter/material.dart';
+
+TourExperience(
+  tours: [
+    TourConfiguration(
+      id: 'first_run',
+      title: 'Getting started',
+      steps: [
+        TourStep(
+          id: 'save_button',
+          route: '/',
+          targetId: 'save_button',
+          title: 'Save your work',
+          description: 'Use this button to save your changes.',
+        ),
+      ],
+    ),
+  ],
+  currentRoute: () => '/',
+  child: MaterialApp(
+    home: Builder(
+      builder: (context) => Scaffold(
+        appBar: AppBar(title: const Text('My app')),
+        body: Column(
+          children: [
+            TourAnchor(
+              id: 'save_button',
+              child: FilledButton(onPressed: () {}, child: const Text('Save')),
+            ),
+            FilledButton(
+              onPressed: () => TourExperience.of(context).start('first_run'),
+              child: const Text('Start tour'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  ),
+)
+```
+
+For multi-route apps, provide `navigate` and `currentRoute` callbacks that connect to the app's router. Provide a custom `TourProgressStore` when progress should use app-specific or server storage. `TourController`, `TourRegistry`, `TourTargetRegistry`, and `TourOverlayHost` remain available for apps that need full control over setup.

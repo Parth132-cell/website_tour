@@ -1,11 +1,11 @@
 {
-    "name": "dynamic_tour_demo",
-    "short_name": "dynamic_tour_demo",
+    "name": "FlowDesk",
+    "short_name": "FlowDesk",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F5F7FA",
+    "theme_color": "#0B6B59",
+    "description": "FlowDesk workspace demo with guided product tours.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

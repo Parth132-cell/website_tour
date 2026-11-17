@@ -1,4 +1,4 @@
-import 'package:dynamic_tour_demo/main.dart';
+import 'package:dynamic_tour_engine/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';

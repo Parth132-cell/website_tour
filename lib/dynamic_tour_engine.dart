@@ -813,6 +813,164 @@ class TourController extends Cubit<TourState> {
   }
 }
 
+/// Small app-level setup for projects that do not need to manage the engine
+/// registries and controller themselves.
+///
+/// Wrap the application once, use [TourAnchor] around guided widgets, and start
+/// a tour with `TourExperience.of(context).start('tour_id')`.
+class TourExperience extends StatefulWidget {
+  const TourExperience({
+    super.key,
+    required this.tours,
+    required this.child,
+    this.currentRoute = _defaultTourRoute,
+    this.navigate = _defaultTourNavigate,
+    this.progressStore,
+    this.userContext = const TourUserContext(),
+    this.cardColor = Colors.white,
+    this.accentColor = const Color(0xFF0B6B59),
+  });
+
+  final List<TourConfiguration> tours;
+  final Widget child;
+  final TourRouteReader currentRoute;
+  final TourNavigate navigate;
+  final TourProgressStore? progressStore;
+  final TourUserContext userContext;
+  final Color cardColor;
+  final Color accentColor;
+
+  static TourExperienceHandle of(BuildContext context) {
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<_TourExperienceScope>();
+    if (scope == null) {
+      throw FlutterError(
+        'TourExperience.of(context) was called outside a TourExperience.',
+      );
+    }
+    return scope.handle;
+  }
+
+  @override
+  State<TourExperience> createState() => _TourExperienceState();
+}
+
+String _defaultTourRoute() => '/';
+Future<void> _defaultTourNavigate(String route) async {}
+
+class _TourExperienceState extends State<TourExperience> {
+  late final TourRegistry tourRegistry;
+  late final TourTargetRegistry targetRegistry;
+  late final TourController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    tourRegistry = TourRegistry();
+    targetRegistry = TourTargetRegistry();
+    for (final tour in widget.tours) {
+      tourRegistry.register(tour);
+    }
+    controller = TourController(
+      registry: targetRegistry,
+      currentRoute: () => widget.currentRoute(),
+      navigate: (route) => widget.navigate(route),
+      progressStore: widget.progressStore,
+      userContext: widget.userContext,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant TourExperience oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.tours, widget.tours)) {
+      tourRegistry.clear();
+      for (final tour in widget.tours) {
+        tourRegistry.register(tour);
+      }
+    }
+    controller.userContext = widget.userContext;
+  }
+
+  @override
+  void dispose() {
+    unawaited(controller.close());
+    targetRegistry.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final handle = TourExperienceHandle._(
+      tourRegistry: tourRegistry,
+      targetRegistry: targetRegistry,
+      controller: controller,
+    );
+    return _TourExperienceScope(
+      handle: handle,
+      child: TourOverlayHost(
+        controller: controller,
+        cardColor: widget.cardColor,
+        accentColor: widget.accentColor,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+/// Access to tours and anchors owned by the nearest [TourExperience].
+class TourExperienceHandle {
+  TourExperienceHandle._({
+    required this.tourRegistry,
+    required this.targetRegistry,
+    required this.controller,
+  });
+
+  final TourRegistry tourRegistry;
+  final TourTargetRegistry targetRegistry;
+  final TourController controller;
+
+  Future<void> start(String tourId, {bool resume = false}) async {
+    final tour = tourRegistry.byId(tourId);
+    if (tour == null) {
+      throw ArgumentError.value(tourId, 'tourId', 'No tour is registered.');
+    }
+    await controller.start(tour, resume: resume);
+  }
+}
+
+class _TourExperienceScope extends InheritedWidget {
+  const _TourExperienceScope({required this.handle, required super.child});
+  final TourExperienceHandle handle;
+
+  @override
+  bool updateShouldNotify(_TourExperienceScope oldWidget) =>
+      oldWidget.handle.controller != handle.controller ||
+      oldWidget.handle.targetRegistry != handle.targetRegistry;
+}
+
+/// Marks a widget as a tour target without passing a registry around.
+class TourAnchor extends StatelessWidget {
+  const TourAnchor({
+    super.key,
+    required this.id,
+    required this.child,
+    this.registrationDelay = Duration.zero,
+  });
+
+  final String id;
+  final Widget child;
+  final Duration registrationDelay;
+
+  @override
+  Widget build(BuildContext context) => TourTarget(
+    id: id,
+    registry: TourExperience.of(context).targetRegistry,
+    registrationDelay: registrationDelay,
+    child: child,
+  );
+}
+
 /// Root overlay host. Place above the routed app content to draw the spotlight and card.
 class TourOverlayHost extends StatelessWidget {
   const TourOverlayHost({
